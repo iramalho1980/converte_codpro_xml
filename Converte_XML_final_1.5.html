@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processador de XML NF-e - Glassmorphism</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 13px;
+            background: #ffd89b;
+            background: -webkit-linear-gradient(to right, #19547b, #ffd89b);
+            background: linear-gradient(to right, #19547b, #ffd89b);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(46, 20, 55, 0.37);
+            color: #ffffff;
+        }
+
+        .glass-card h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card p {
+            font-size: 13px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* File List */
+        .file-list {
+            margin-bottom: 25px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .file-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .file-name {
+            font-size: 12px;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .file-status {
+            font-size: 11px;
+            margin-left: 10px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+            font-weight: 500;
+        }
+
+        .file-status.error {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        .remove-btn {
+            background: rgba(244, 67, 54, 0.3);
+            border: none;
+            color: #f44336;
+            padding: 4px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .remove-btn:hover {
+            background: rgba(244, 67, 54, 0.5);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Ubuntu', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: rgba(25, 84, 123, 0.6);
+            color: #ffffff;
+            border: 2px solid rgba(25, 84, 123, 0.8);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: rgba(25, 84, 123, 0.8);
+            border-color: rgba(25, 84, 123, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(25, 84, 123, 0.4);
+        }
+
+        .btn-success {
+            background: rgba(76, 175, 80, 0.7);
+            color: #ffffff;
+            border: 2px solid rgba(76, 175, 80, 0.9);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: rgba(76, 175, 80, 0.9);
+            border-color: rgba(76, 175, 80, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.5);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: rgba(244, 67, 54, 0.7);
+            color: #ffffff;
+            border: 2px solid rgba(244, 67, 54, 0.9);
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            background: rgba(244, 67, 54, 0.9);
+            border-color: rgba(244, 67, 54, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.5);
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        .status-message.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.4);
+        }
+
+        .status-message.info {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+            border: 1px solid rgba(33, 150, 243, 0.4);
+        }
+
+        /* Spinner */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .spinner-overlay.show {
+            display: flex;
+        }
+
+        .spinner-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(46, 20, 55, 0.37);
+        }
+
+        .spinner {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .spinner-circle {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #4caf50;
+            border-right: 4px solid #4caf50;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .spinner-percentage {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4caf50;
+            margin-bottom: 10px;
+        }
+
+        .spinner-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4caf50;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 25px;
+            }
+
+            .glass-card h1 {
+                font-size: 22px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .spinner-container {
+                padding: 30px;
+                margin: 20px;
+            }
+
+            .spinner {
+                width: 100px;
+                height: 100px;
+                margin: 0 auto 15px;
+            }
+
+            .spinner-percentage {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Spinner Overlay -->
+    <div id="spinnerOverlay" class="spinner-overlay">
+        <div class="spinner-container">
+            <div class="spinner">
+                <div class="spinner-circle"></div>
+            </div>
+            <div class="spinner-text" id="spinnerText">Processando arquivos...</div>
+            <div class="spinner-percentage" id="spinnerPercentage">0%</div>
+            <div class="spinner-label" id="spinnerLabel">Por favor, aguarde...</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="glass-card">
+            <h1>📄 Processador XML NF-e</h1>
+            <p>Importe múltiplos XMLs e remova caracteres especiais da tag xProd automaticamente</p>
+
+            <!-- Status Message -->
+            <div id="statusMessage" class="status-message"></div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Clique ou arraste arquivos XML aqui</div>
+                <div class="upload-hint">Suporta múltiplos arquivos simultâneos</div>
+                <input type="file" id="fileInput" multiple accept=".xml">
+            </div>
+
+            <!-- Stats -->
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalFiles">0</div>
+                    <div class="stat-label">Arquivos Carregados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="processedCount">0</div>
+                    <div class="stat-label">Processados</div>
+                </div>
+            </div>
+
+            <!-- File List -->
+            <div class="file-list" id="fileList"></div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button class="btn-primary" id="addMoreBtn" onclick="document.getElementById('fileInput').click()">
+                    ➕ Adicionar Arquivos
+                </button>
+                <button class="btn-success" id="processBtn" onclick="processFiles()" disabled>
+                    ⚙️ Processar & Baixar
+                </button>
+                <button class="btn-clear" id="clearBtn" onclick="clearAll()">
+                    🗑️ Limpar Tudo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let files = [];
+        let downloadQueueGlobal = [];
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const statusMessage = document.getElementById('statusMessage');
+        const processBtn = document.getElementById('processBtn');
+        const stats = document.getElementById('stats');
+        const spinnerOverlay = document.getElementById('spinnerOverlay');
+        const spinnerPercentage = document.getElementById('spinnerPercentage');
+        const spinnerText = document.getElementById('spinnerText');
+        const spinnerLabel = document.getElementById('spinnerLabel');
+
+        // Drag and Drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(newFiles) {
+            const xmlFiles = [];
+            const invalidFiles = [];
+
+            // Separa arquivos XML dos inválidos
+            for (let file of newFiles) {
+                if (file.name.toLowerCase().endsWith('.xml')) {
+                    xmlFiles.push(file);
+                } else {
+                    invalidFiles.push(file.name);
+                }
+            }
+
+            // Mostra mensagem se houver arquivos inválidos
+            if (invalidFiles.length > 0) {
+                const invalidList = invalidFiles.slice(0, 3).join(', ');
+                const moreText = invalidFiles.length > 3 ? ` e mais ${invalidFiles.length - 3}` : '';
+                showStatus(`⚠️ ${invalidFiles.length} arquivo(s) ignorado(s) (apenas XML é permitido): ${invalidList}${moreText}`, 'error');
+            }
+
+            // Se não houver arquivos XML, retorna
+            if (xmlFiles.length === 0) {
+                if (invalidFiles.length > 0) {
+                    return;
+                }
+            }
+
+            showSpinner(true, 'Importando arquivos...', 0);
+            let processedCount = 0;
+            const totalFiles = xmlFiles.length;
+
+            for (let file of xmlFiles) {
+                files.push({
+                    file: file,
+                    name: file.name,
+                    status: 'pendente',
+                    nNF: null,
+                    error: null
+                });
+                processedCount++;
+                const percentage = Math.round((processedCount / totalFiles) * 100);
+                updateSpinner(percentage, `Importando: ${processedCount}/${totalFiles}`);
+            }
+            
+            setTimeout(() => {
+                showSpinner(false);
+                updateFileList();
+                updateStats();
+                if (xmlFiles.length > 0) {
+                    showStatus(`✓ ${xmlFiles.length} arquivo(s) XML importado(s) com sucesso`, 'success');
+                }
+            }, 500);
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            files.forEach((fileObj, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                let statusText = fileObj.status;
+                let statusClass = '';
+                
+                if (fileObj.status === 'processado') {
+                    statusText = `✓ Entrada - ${fileObj.nNF}`;
+                    statusClass = '';
+                } else if (fileObj.status === 'erro') {
+                    statusText = fileObj.error || 'Erro ao processar';
+                    statusClass = 'error';
+                }
+
+                fileItem.innerHTML = `
+                    <div class="file-name">${fileObj.name}</div>
+                    <div class="file-status ${statusClass}">${statusText}</div>
+                    <button class="remove-btn" onclick="removeFile(${index})">✕</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+
+            processBtn.disabled = files.length === 0;
+            stats.style.display = files.length > 0 ? 'grid' : 'none';
+        }
+
+        function updateStats() {
+            const totalFiles = files.length;
+            const processedCount = files.filter(f => f.status === 'processado').length;
+            
+            document.getElementById('totalFiles').textContent = totalFiles;
+            document.getElementById('processedCount').textContent = processedCount;
+        }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            updateFileList();
+            updateStats();
+        }
+
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show ${type}`;
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        function cleanXProd(text) {
+            // Remove caracteres especiais, mantendo apenas letras e números
+            return text.replace(/[^a-zA-Z0-9áàâãéèêíïóôõöúçñ\s]/g, '').trim();
+        }
+
+        function extractNNF(xmlContent) {
+            const match = xmlContent.match(/<nNF>(\d+)<\/nNF>/);
+            return match ? match[1] : null;
+        }
+
+        function processXML(xmlContent) {
+            try {
+                // Extrai o número da nota
+                const nNF = extractNNF(xmlContent);
+                if (!nNF) {
+                    throw new Error('Número da nota (nNF) não encontrado');
+                }
+
+                // Processa todas as tags xProd
+                let processedXML = xmlContent.replace(/<xProd>([^<]*)<\/xProd>/g, (match, content) => {
+                    const cleaned = cleanXProd(content);
+                    return `<xProd>${cleaned}</xProd>`;
+                });
+
+                // Processa todas as tags cProd
+                processedXML = processedXML.replace(/<cProd>([^<]*)<\/cProd>/g, (match, content) => {
+                    const cleaned = cleanXProd(content);
+                    return `<cProd>${cleaned}</cProd>`;
+                });
+
+                return {
+                    success: true,
+                    nNF: nNF,
+                    xml: processedXML
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        async function processFiles() {
+            if (files.length === 0) {
+                showStatus('Nenhum arquivo para processar', 'error');
+                return;
+            }
+
+            showSpinner(true, 'Processando arquivos...', 0);
+            processBtn.disabled = true;
+
+            let processedCount = 0;
+            const totalFiles = files.length;
+            downloadQueueGlobal = [];
+
+            // Primeira fase: Processar todos os arquivos
+            for (let i = 0; i < totalFiles; i++) {
+                const fileObj = files[i];
+                
+                try {
+                    const xmlContent = await fileObj.file.text();
+                    const result = processXML(xmlContent);
+
+                    if (result.success) {
+                        fileObj.status = 'processado';
+                        fileObj.nNF = result.nNF;
+                        downloadQueueGlobal.push({
+                            content: result.xml,
+                            filename: `Entrada - ${result.nNF}.xml`
+                        });
+                        processedCount++;
+                    } else {
+                        fileObj.status = 'erro';
+                        fileObj.error = result.error;
+                    }
+                } catch (error) {
+                    fileObj.status = 'erro';
+                    fileObj.error = error.message;
+                }
+
+                // Atualiza progresso do spinner (0-70% para processamento)
+                const progress = ((i + 1) / totalFiles) * 70;
+                updateSpinner(progress, `Processando: ${i + 1}/${totalFiles}`);
+                
+                updateFileList();
+                updateStats();
+            }
+
+            // Segunda fase: Fazer download de todos os arquivos
+            updateSpinner(70, `Preparando ${downloadQueueGlobal.length} arquivo(s) para download...`);
+            
+            // Aguarda um pouco antes de iniciar os downloads
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Tenta usar File System Access API (Chrome, Edge, Firefox recente)
+            if (window.showDirectoryPicker) {
+                try {
+                    const dirHandle = await window.showDirectoryPicker();
+                    
+                    // Salva todos os arquivos na pasta selecionada
+                    for (let i = 0; i < downloadQueueGlobal.length; i++) {
+                        const { content, filename } = downloadQueueGlobal[i];
+                        
+                        try {
+                            const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+                            const writable = await fileHandle.createWritable();
+                            await writable.write(content);
+                            await writable.close();
+                        } catch (err) {
+                            console.error(`Erro ao salvar ${filename}:`, err);
+                        }
+                        
+                        // Atualiza o progresso
+                        const progress = 70 + ((i + 1) / downloadQueueGlobal.length) * 30;
+                        updateSpinner(progress, `Salvando: ${i + 1}/${downloadQueueGlobal.length}`);
+                    }
+                } catch (err) {
+                    // Se o usuário cancelar ou houver erro, usa o método de download clássico
+                    console.log('Usando método de download clássico...');
+                    await downloadFilesClassic(downloadQueueGlobal);
+                }
+            } else {
+                // Navegadores que não suportam File System Access API
+                await downloadFilesClassic(downloadQueueGlobal);
+            }
+
+            showSpinner(false);
+            processBtn.disabled = false;
+
+            const errorCount = files.filter(f => f.status === 'erro').length;
+            if (errorCount === 0) {
+                showStatus(`✓ Sucesso! ${processedCount} arquivo(s) processado(s) e baixado(s)`, 'success');
+            } else {
+                showStatus(`⚠️ ${processedCount} arquivo(s) processado(s), ${errorCount} com erro`, 'error');
+            }
+        }
+
+
+
+        async function downloadFilesClassic(downloadList) {
+            for (let i = 0; i < downloadList.length; i++) {
+                const { content, filename } = downloadList[i];
+                
+                const blob = new Blob([content], { type: 'application/xml' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.style.display = 'none';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                await new Promise(resolve => {
+                    setTimeout(() => {
+                        window.URL.revokeObjectURL(url);
+                        resolve();
+                    }, 150);
+                });
+                
+                const progress = 70 + ((i + 1) / downloadList.length) * 30;
+                updateSpinner(progress, `Baixando: ${i + 1}/${downloadList.length}`);
+            }
+        }
+
+        function showSpinner(show, text = '', percentage = 0) {
+            if (show) {
+                spinnerOverlay.classList.add('show');
+                spinnerText.textContent = text;
+                spinnerPercentage.textContent = percentage + '%';
+                spinnerLabel.textContent = 'Por favor, aguarde...';
+            } else {
+                spinnerOverlay.classList.remove('show');
+            }
+        }
+
+        function updateSpinner(percentage, label = '') {
+            spinnerPercentage.textContent = Math.round(percentage) + '%';
+            if (label) {
+                spinnerLabel.textContent = label;
+            }
+        }
+
+        function clearAll() {
+            if (files.length === 0) return;
+            
+            if (confirm('Tem certeza que deseja limpar todos os arquivos?')) {
+                files = [];
+                fileInput.value = '';
+                updateFileList();
+                updateStats();
+                statusMessage.classList.remove('show');
+                showStatus('Todos os arquivos foram removidos', 'info');
+            }
+        }
+    </script>
+</body>
+</html>
